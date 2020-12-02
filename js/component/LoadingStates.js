@@ -35,11 +35,11 @@ export default function () {
             .filter(action => {
                 return (
                     action.type === 'callMethod' &&
-                    action.el.innerHTML.includes(action.payload.method + '(')
+                    action.el.outerHTML.includes(action.payload.method + '(')
                 )
             })
             .map(action => {
-                return action.el.innerHTML.match(
+                return action.el.outerHTML.match(
                     new RegExp(action.payload.method + '\\((.*)\\)')
                 )[0]
             })
