@@ -24,7 +24,6 @@ export default function () {
     })
 
     store.registerHook('message.sent', (message, component) => {
-        // console.log(message.updateQueue)
         const actions = message.updateQueue
             .filter(action => {
                 return action.type === 'callMethod'
