@@ -63,6 +63,7 @@ class Test extends TestCase
 
                     $browser->waitFor('@targeting');
                     $browser->assertVisible('@targeting-both');
+                    $browser->assertVisible('@targeting-param');
                 })
                 ->tap($this->assertInitialState())
                 ->waitForLivewire(function (Browser $browser) {

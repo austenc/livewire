@@ -1,5 +1,5 @@
 import store from '@/Store'
-import { wireDirectives} from '@/util'
+import { wireDirectives } from '@/util'
 
 export default function () {
     store.registerHook('component.initialized', component => {
@@ -24,11 +24,26 @@ export default function () {
     })
 
     store.registerHook('message.sent', (message, component) => {
-        const actions = message.updateQueue
-            .filter(action => {
-                return action.type === 'callMethod'
-            })
-            .map(action => action.payload.method)
+
+        const rawActions = message.updateQueue.filter(action => {
+            return action.type === 'callMethod'
+        })
+
+        const actionsWithParams = rawActions.map(action => {
+            // This "works", but it does not differentiate the scenario when
+            // the action has a parameter and the target DOESNT have one.
+            // Perhaps it could fall back to the "no params" version if there's no indicator for the param-specific target?
+            return (
+                action.payload.method +
+                '(' +
+                action.payload.params.join(',') +
+                ')'
+            )
+        })
+
+        const actions = rawActions.map(action => {
+            return action.payload.method
+        })
 
         const models = message.updateQueue
             .filter(action => {
@@ -36,7 +51,7 @@ export default function () {
             })
             .map(action => action.payload.name)
 
-        setLoading(component, actions.concat(models))
+        setLoading(component, actions.concat(actionsWithParams).concat(models))
     })
 
     store.registerHook('message.failed', (message, component) => {
