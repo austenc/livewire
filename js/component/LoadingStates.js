@@ -1,5 +1,5 @@
 import store from '@/Store'
-import { wireDirectives} from '@/util'
+import { wireDirectives } from '@/util'
 
 export default function () {
     store.registerHook('component.initialized', component => {
@@ -24,11 +24,25 @@ export default function () {
     })
 
     store.registerHook('message.sent', (message, component) => {
+        // console.log(message.updateQueue)
         const actions = message.updateQueue
             .filter(action => {
                 return action.type === 'callMethod'
             })
             .map(action => action.payload.method)
+
+        const actionsWithParams = message.updateQueue
+            .filter(action => {
+                return (
+                    action.type === 'callMethod' &&
+                    action.el.innerHTML.includes(action.payload.method + '(')
+                )
+            })
+            .map(action => {
+                return action.el.innerHTML.match(
+                    new RegExp(action.payload.method + '\\((.*)\\)')
+                )[0]
+            })
 
         const models = message.updateQueue
             .filter(action => {
@@ -36,7 +50,7 @@ export default function () {
             })
             .map(action => action.payload.name)
 
-        setLoading(component, actions.concat(models))
+        setLoading(component, actions.concat(actionsWithParams).concat(models))
     })
 
     store.registerHook('message.failed', (message, component) => {
@@ -127,7 +141,7 @@ function removeLoadingEl(component, el) {
         component.targetedLoadingElsByAction[
             key
         ] = component.targetedLoadingElsByAction[key].filter(element => {
-            return ! element.el.isSameNode(el)
+            return !element.el.isSameNode(el)
         })
     })
 }
@@ -208,8 +222,11 @@ function startLoading(els) {
 }
 
 function getDisplayProperty(directive) {
-    return ['inline', 'block', 'table', 'flex', 'grid']
-        .filter(i => directive.modifiers.includes(i))[0] || 'inline-block'
+    return (
+        ['inline', 'block', 'table', 'flex', 'grid'].filter(i =>
+            directive.modifiers.includes(i)
+        )[0] || 'inline-block'
+    )
 }
 
 function doAndSetCallbackOnElToUndo(el, directive, doCallback, undoCallback) {
