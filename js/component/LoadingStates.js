@@ -1,5 +1,5 @@
 import store from '@/Store'
-import { wireDirectives} from '@/util'
+import { wireDirectives } from '@/util'
 
 export default function () {
     store.registerHook('component.initialized', component => {
@@ -29,6 +29,9 @@ export default function () {
                 return action.type === 'callMethod'
             })
             .map(action => action.payload.method)
+
+        // Action signatures -- map through the same hashing function like this.generateSignatureFromMethodAndParams(method, params)
+        // it would generate something like myMethod5123asdfaa
 
         const models = message.updateQueue
             .filter(action => {
@@ -64,6 +67,11 @@ function processLoadingDirective(component, el, directive) {
 
     if (directives.get('target')) {
         // wire:target overrides any automatic loading scoping we do.
+
+        // If parens exist, make a map with target + params
+        // Use the method and params properties to map through and make hash of method + params
+
+        // ELSE, do the normal functionality
         actionNames = directives
             .get('target')
             .value.split(',')
@@ -127,7 +135,7 @@ function removeLoadingEl(component, el) {
         component.targetedLoadingElsByAction[
             key
         ] = component.targetedLoadingElsByAction[key].filter(element => {
-            return ! element.el.isSameNode(el)
+            return !element.el.isSameNode(el)
         })
     })
 }
@@ -208,8 +216,11 @@ function startLoading(els) {
 }
 
 function getDisplayProperty(directive) {
-    return ['inline', 'block', 'table', 'flex', 'grid']
-        .filter(i => directive.modifiers.includes(i))[0] || 'inline-block'
+    return (
+        ['inline', 'block', 'table', 'flex', 'grid'].filter(i =>
+            directive.modifiers.includes(i)
+        )[0] || 'inline-block'
+    )
 }
 
 function doAndSetCallbackOnElToUndo(el, directive, doCallback, undoCallback) {
